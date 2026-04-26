@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>PointPro — Pointage Biométrique SaaS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#080810;--bg2:#0f0f1a;--bg3:#16162a;--bg4:#1e1e35;--bg5:#252542;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#eeeef8;--text2:#8888aa;--text3:#4a4a6a;
+  --accent:#6c5ce7;--accent2:#5a4dd4;--accent-glow:rgba(108,92,231,0.22);
+  --green:#00b894;--green-bg:rgba(0,184,148,0.1);
+  --red:#e84393;--red-bg:rgba(232,67,147,0.1);
+  --amber:#fdcb6e;--amber-bg:rgba(253,203,110,0.1);
+  --blue:#74b9ff;--blue-bg:rgba(116,185,255,0.1);
+  --violet:#a29bfe;--violet-bg:rgba(162,155,254,0.1);
+  --radius:10px;--radius-lg:16px;
+  --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --sidebar:240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden;line-height:1.5}
+h1,h2,h3,h4,h5{font-family:var(--font-head)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:3px}
+button{cursor:pointer;font-family:var(--font-body)}
+input,select,textarea{font-family:var(--font-body)}
+a{color:var(--accent);text-decoration:none}
+
+/* ── Layout ── */
+.app{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+@media(max-width:680px){.sidebar{transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.main{margin-left:0}}
+
+/* ── Auth ── */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg);background-image:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(108,92,231,0.12),transparent)}
+.auth-card{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,0.5)}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-icon{font-size:36px;display:block;margin-bottom:8px}
+.auth-logo-name{font-family:var(--font-head);font-size:26px;font-weight:800;letter-spacing:-0.5px}
+.auth-logo-name span{color:var(--accent)}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:28px;gap:4px}
+.auth-tab{flex:1;padding:10px;border:none;background:transparent;color:var(--text2);font-size:14px;font-weight:500;border-radius:8px;transition:all .15s;font-family:var(--font-head)}
+.auth-tab.active{background:var(--bg4);color:var(--text)}
+.auth-error{background:var(--red-bg);border:1px solid rgba(232,67,147,0.25);color:var(--red);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+.auth-success{background:var(--green-bg);border:1px solid rgba(0,184,148,0.25);color:var(--green);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+
+/* ── Forms ── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:11px 14px;color:var(--text);font-size:14px;outline:none;transition:border .15s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--text3)}
+select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238888aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;border:none;transition:all .15s;font-family:var(--font-body)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--bg4);color:var(--text)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(232,67,147,0.2)}
+.btn-danger:hover{background:rgba(232,67,147,0.2)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,184,148,0.2)}
+.btn-success:hover{background:rgba(0,184,148,0.2)}
+.btn-sm{padding:7px 12px;font-size:12px}
+.btn-icon{width:34px;height:34px;padding:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px}
+.btn-full{width:100%;padding:13px}
+
+/* ── Sidebar ── */
+.sidebar-logo{padding:22px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.logo-text{font-family:var(--font-head);font-size:18px;font-weight:800;letter-spacing:-0.3px}
+.logo-text span{color:var(--accent)}
+.sidebar-company{padding:12px 16px;border-bottom:1px solid var(--border)}
+.company-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);cursor:pointer;outline:none}
+.sidebar-nav{flex:1;padding:12px 10px}
+.nav-section-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:8px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .12s;position:relative}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--accent-glow);color:var(--text);border:1px solid rgba(108,92,231,0.2)}
+.nav-badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;font-family:var(--font-head)}
+.user-name{font-size:13px;font-weight:500}
+.user-email{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.logout-btn{margin-left:auto;background:none;border:none;color:var(--text3);font-size:16px;padding:4px;cursor:pointer;transition:color .15s}
+.logout-btn:hover{color:var(--red)}
+
+/* ── Topbar ── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50}
+.page-title{font-family:var(--font-head);font-size:16px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.clock{font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--accent)}
+.date-str{font-size:11px;color:var(--text3);text-align:right}
+.menu-btn{display:none;background:none;border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text2);font-size:14px}
+@media(max-width:680px){.menu-btn{display:block}}
+
+/* ── Content ── */
+.content{padding:28px;flex:1}
+@media(max-width:680px){.content{padding:16px}}
+
+/* ── Cards ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px}
+.card-title{font-family:var(--font-head);font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* ── Stats ── */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:1000px){.grid-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;inset:0;opacity:.04;border-radius:inherit}
+.stat-card.green::before{background:var(--green)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.amber::before{background:var(--amber)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.violet::before{background:var(--violet)}
+.stat-val{font-family:var(--font-head);font-size:30px;font-weight:800;line-height:1;margin:8px 0 4px}
+.stat-label{font-size:12px;color:var(--text3);font-weight:500}
+.stat-icon{font-size:20px}
+
+/* ── Badge ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-violet{background:var(--violet-bg);color:var(--violet)}
+.badge-gray{background:var(--bg4);color:var(--text3)}
+
+/* ── Progress bar ── */
+.pbar{background:var(--bg4);border-radius:4px;height:5px;overflow:hidden;margin-top:10px}
+.pbar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:13px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.emp-row{display:flex;align-items:center;gap:10px}
+.emp-name{font-weight:500;font-size:13px}
+.emp-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.emp-avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--font-head);color:#fff;flex-shrink:0}
+.row-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s}
+tr:hover .row-actions{opacity:1}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0}
+.modal-title{font-family:var(--font-head);font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px;line-height:1;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px 22px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:0 22px 20px}
+
+/* ── Pointage buttons ── */
+.ptg-grid{display:flex;gap:10px;flex-wrap:wrap}
+.ptg-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:82px;height:82px;border-radius:14px;border:2px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;transition:all .15s;cursor:pointer;font-family:var(--font-body)}
+.ptg-btn:hover:not(:disabled){border-color:var(--accent);color:var(--text);background:var(--bg4)}
+.ptg-btn:disabled{opacity:.3;cursor:not-allowed}
+.ptg-btn.active-in{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.ptg-btn.active-pause{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.ptg-btn.active-out{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.ptg-icon{font-size:22px}
+
+/* ── Biometric modal ── */
+.bio-ring{width:100px;height:100px;border-radius:50%;border:3px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 16px;cursor:pointer;transition:all .25s;position:relative}
+.bio-ring.idle{border-color:var(--accent)}
+.bio-ring.scanning{border-color:var(--amber);animation:bioPulse .6s ease-in-out infinite}
+.bio-ring.success{border-color:var(--green)}
+.bio-ring.error{border-color:var(--red)}
+@keyframes bioPulse{0%,100%{box-shadow:0 0 0 0 rgba(253,203,110,.3)}50%{box-shadow:0 0 0 14px transparent}}
+
+/* ── Timeline ── */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tl-time{font-weight:600;font-size:12px;color:var(--text2);width:40px;flex-shrink:0}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:52px 20px;color:var(--text3)}
+.empty-icon{font-size:44px;margin-bottom:12px}
+.empty-text{font-size:14px;margin-bottom:16px}
+
+/* ── Page header ── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.page-header h2{font-family:var(--font-head);font-size:22px;font-weight:800;letter-spacing:-.3px}
+.page-header p{font-size:13px;color:var(--text2);margin-top:3px}
+
+/* ── Section header ── */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-family:var(--font-head);font-size:14px;font-weight:700}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:4px;background:var(--bg3);padding:4px;border-radius:10px;width:fit-content;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .12s;white-space:nowrap}
+.tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* ── Toast ── */
+.toast-wrap{position:fixed;top:18px;right:18px;z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;animation:toastIn .25s ease;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:260px;pointer-events:all}
+@keyframes toastIn{from{opacity:0;transform:translateX(16px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}
+
+/* ── Congés ── */
+.conge-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:border .15s}
+.conge-card:hover{border-color:var(--border2)}
+.conge-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.conge-body{flex:1}
+.conge-name{font-weight:600;font-size:14px}
+.conge-meta{font-size:12px;color:var(--text3);margin-top:3px}
+.conge-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+
+/* ── Loader ── */
+.fullscreen-loader{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg)}
+.spin{width:36px;height:36px;border:3px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Dept dot ── */
+.dept-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+
+/* ── Responsive helpers ── */
+.hide-sm{}.show-sm{display:none}
+@media(max-width:680px){.hide-sm{display:none}.show-sm{display:flex}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ─────────────────────────────────────────────
+   SUPABASE
+───────────────────────────────────────────── */
+const SUPA_URL = 'https://uncxtubumatabgxxymek.supabase.co';
+const SUPA_KEY = 'sb_publishable_Xn7euYW38GOdJnxK8qM8eA_HmwJSIeb';
+const db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
+/* ─────────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────────── */
+const DEPTS = [
+  { id: 'dev',    label: 'Développement',      color: '#6c5ce7' },
+  { id: 'rh',     label: 'Ressources Humaines', color: '#00b894' },
+  { id: 'compta', label: 'Comptabilité',        color: '#fdcb6e' },
+  { id: 'comm',   label: 'Commercial',          color: '#74b9ff' },
+  { id: 'ops',    label: 'Opérations',          color: '#e84393' },
+  { id: 'it',     label: 'Informatique',        color: '#a29bfe' },
+  { id: 'autre',  label: 'Autre',               color: '#636e72' },
+];
+
+const COLORS = ['#6c5ce7','#00b894','#fdcb6e','#74b9ff','#e84393','#a29bfe','#fd79a8','#00cec9','#e17055','#55efc4'];
+
+const TYPE_META = {
+  entree:      { label: 'Entrée',       icon: '→', color: '#00b894', badge: 'badge-green' },
+  pause_debut: { label: 'Début pause',  icon: '⏸', color: '#fdcb6e', badge: 'badge-amber' },
+  pause_fin:   { label: 'Fin de pause', icon: '▶', color: '#74b9ff', badge: 'badge-blue'  },
+  sortie:      { label: 'Sortie',       icon: '←', color: '#e84393', badge: 'badge-red'   },
+};
+
+const CONGE_TYPES = [
+  { id: 'annuel',     label: 'Congé annuel',    icon: '🌴', color: '#00b894' },
+  { id: 'maladie',    label: 'Congé maladie',   icon: '🏥', color: '#e84393' },
+  { id: 'maternite',  label: 'Maternité',       icon: '🤱', color: '#fd79a8' },
+  { id: 'paternite',  label: 'Paternité',       icon: '👨‍👶', color: '#74b9ff' },
+  { id: 'sans_solde', label: 'Sans solde',      icon: '💼', color: '#fdcb6e' },
+  { id: 'autre',      label: 'Autre',           icon: '📋', color: '#a29bfe' },
+];
+
+const CONGE_STATUS = {
+  en_attente: { label: 'En attente', badge: 'badge-amber' },
+  approuve:   { label: 'Approuvé',   badge: 'badge-green' },
+  refuse:     { label: 'Refusé',     badge: 'badge-red'   },
+};
+
+/* ─────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────── */
+const initials = n => (n || '?').split(' ').map(x => x[0]).join('').slice(0,2).toUpperCase();
+const fmt2 = n => String(n).padStart(2,'0');
+const fmtTime = d => fmt2(d.getHours())+':'+fmt2(d.getMinutes());
+const todayStr = () => new Date().toISOString().split('T')[0];
+const fmtDate = d => d.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+const fmtShortDate = s => { if(!s)return''; const[y,m,j]=s.split('-'); return `${j}/${m}/${y}`; };
+const diffDays = (a,b) => { const ms = new Date(b)-new Date(a); return ms<0?0:Math.round(ms/86400000)+1; };
+const randColor = () => COLORS[Math.floor(Math.random()*COLORS.length)];
+
+function computeStatus(empId, ptgs) {
+  const mine = ptgs.filter(p => p.emp_id === empId && p.date === todayStr()).sort((a,b) => a.ts-b.ts);
+  const last = mine[mine.length-1];
+  if (!last) return 'absent';
+  if (last.type === 'entree' || last.type === 'pause_fin') return 'present';
+  if (last.type === 'pause_debut') return 'pause';
+  return 'absent';
+}
+
+/* ─────────────────────────────────────────────
+   WEBAUTHN HELPERS
+───────────────────────────────────────────── */
+const bio = {
+  isSupported: () => !!(window.PublicKeyCredential),
+
+  async register(employeeId, employeeName) {
+    if (!this.isSupported()) throw new Error('Biométrie non supportée sur ce navigateur');
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId = new TextEncoder().encode(employeeId.replace(/-/g,'').substring(0,32));
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge,
+      rp: { name: 'PointPro', id: location.hostname },
+      user: { id: userId, name: employeeName, displayName: employeeName },
+      pubKeyCredParams: [{ type:'public-key', alg:-7 },{ type:'public-key', alg:-257 }],
+      authenticatorSelection: {
+        authenticatorAttachment: 'platform',
+        userVerification: 'required',
+        residentKey: 'preferred',
+      },
+      timeout: 60000,
+      attestation: 'none',
+    }});
+    return btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+  },
+
+  async verify(credBase64) {
+    if (!this.isSupported()) throw new Error('Biométrie non supportée');
+    if (!credBase64) throw new Error('Aucune biométrie enregistrée pour cet employé');
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const credId = Uint8Array.from(atob(credBase64), c => c.charCodeAt(0));
+    const assertion = await navigator.credentials.get({ publicKey: {
+      challenge,
+      allowCredentials: [{ type:'public-key', id:credId, transports:['internal'] }],
+      userVerification: 'required',
+      timeout: 60000,
+    }});
+    return !!assertion;
+  }
+};
+
+/* ─────────────────────────────────────────────
+   TOAST
+───────────────────────────────────────────── */
+function Toast({ toasts }) {
+  return React.createElement('div', { className:'toast-wrap' },
+    toasts.map(t => React.createElement('div', { key:t.id, className:'toast' },
+      React.createElement('span', { style:{fontSize:18} }, t.icon),
+      t.msg
+    ))
+  );
+}
+
+/* ─────────────────────────────────────────────
+   AUTH SCREEN
+───────────────────────────────────────────── */
+function AuthScreen({ onAuth }) {
+  const [tab, setTab] = useState('login');
+  const [form, setForm] = useState({ name:'', email:'', password:'' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+  const upd = k => e => setForm(f => ({...f, [k]: e.target.value}));
+
+  async function handleLogin(ev) {
+    ev.preventDefault(); setLoading(true); setError('');
+    const { data, error } = await db.auth.signInWithPassword({ email:form.email, password:form.password });
+    if (error) setError(error.message);
+    else onAuth(data.user);
+    setLoading(false);
+  }
+
+  async function handleRegister(ev) {
+    ev.preventDefault(); setLoading(true); setError(''); setInfo('');
+    if (!form.name.trim()) { setError('Veuillez saisir votre nom'); setLoading(false); return; }
+    const { data, error } = await db.auth.signUp({
+      email: form.email, password: form.password,
+      options: { data: { full_name: form.name } }
+    });
+    if (error) setError(error.message);
+    else if (data.user && data.session) onAuth(data.user);
+    else setInfo('Vérifiez votre email pour confirmer votre compte, puis connectez-vous.');
+    setLoading(false);
+  }
+
+  return React.createElement('div', { className:'auth-wrap' },
+    React.createElement('div', { className:'auth-card' },
+      React.createElement('div', { className:'auth-logo' },
+        React.createElement('span', { className:'auth-logo-icon' }, '⏱'),
+        React.createElement('div', { className:'auth-logo-name' }, React.createElement('span',null,'Point'),'Pro')
+      ),
+
+      React.createElement('div', { className:'auth-tabs' },
+        React.createElement('button', { className:`auth-tab${tab==='login'?' active':''}`, onClick:()=>{setTab('login');setError('');setInfo('')} }, 'Connexion'),
+        React.createElement('button', { className:`auth-tab${tab==='register'?' active':''}`, onClick:()=>{setTab('register');setError('');setInfo('')} }, 'Créer un compte')
+      ),
+
+      error && React.createElement('div', { className:'auth-error' }, '⚠️ '+error),
+      info  && React.createElement('div', { className:'auth-success' }, '✅ '+info),
+
+      tab === 'login'
+        ? React.createElement('form', { onSubmit:handleLogin },
+            React.createElement('div',{className:'form-group'},
+              React.createElement('label',{className:'form-label'},'Adresse email'),
+              React.createElement('input',{className:'form-input',type:'email',placeholder:'votre@email.com',value:form.email,onChange:upd('email'),required:true})
+            ),
+            React.createElement('div',{className:'form-group'},
+              React.createElement('label',{className:'form-label'},'Mot de passe'),
+              React.createElement('input',{className:'form-input',type:'password',placeholder:'••••••••',value:form.password,onChange:upd('password'),required:true})
+            ),
+            React.createElement('button',{type:'submit',className:'btn btn-primary btn-full',disabled:loading}, loading?'Connexion…':'Se connecter')
+          )
+        : React.createElement('form', { onSubmit:handleRegister },
+            React.createElement('div',{className:'form-group'},
+              React.createElement('label',{className:'form-label'},'Nom complet'),
+              React.createElement('input',{className:'form-input',type:'text',placeholder:'Ex: Mamadou Diallo',value:form.name,onChange:upd('name'),required:true})
+            ),
+            React.createElement('div',{className:'form-group'},
+              React.createElement('label',{className:'form-label'},'Adresse email'),
+              React.createElement('input',{className:'form-input',type:'email',placeholder:'votre@email.com',value:form.email,onChange:upd('email'),required:true})
+            ),
+            React.createElement('div',{className:'form-group'},
+              React.createElement('label',{className:'form-label'},'Mot de passe'),
+              React.createElement('input',{className:'form-input',type:'password',placeholder:'Minimum 6 caractères',value:form.password,onChange:upd('password'),required:true,minLength:6})
+            ),
+            React.createElement('button',{type:'submit',className:'btn btn-primary btn-full',disabled:loading}, loading?'Création…':'Créer mon compte')
+          )
+    )
+  );
+}
+
+/* ─────────────────────────────────────────────
+   MODALS
+───────────────────────────────────────────── */
+function Modal({ title, onClose, children, footer }) {
+  return React.createElement('div', { className:'modal-overlay', onClick:e=>{ if(e.target===e.currentTarget) onClose(); } },
+    React.createElement('div', { className:'modal' },
+      React.createElement('div', { className:'modal-header' },
+        React.createElement('div', { className:'modal-title' }, title),
+        React.createElement('button', { className:'modal-close', onClick:onClose }, '✕')
+      ),
+      React.createElement('div', { className:'modal-body' }, children),
+      footer && React.createElement('div', { className:'modal-footer' }, footer)
+    )
+  );
+}
+
+function AddCompanyModal({ onAdd, onClose }) {
+  const [form, setForm] = useState({ name:'', sector:'', size:'' });
+  const [loading, setLoading] = useState(false);
+  const upd = k => e => setForm(f => ({...f,[k]:e.target.value}));
+  async function submit() {
+    if (!form.name.trim()) return;
+    setLoading(true);
+    await onAdd({ ...form, size:parseInt(form.size)||0, color:randColor(), logo:'🏢' });
+    setLoading(false); onClose();
+  }
+  return React.createElement(Modal, { title:'🏢 Nouvelle entreprise', onClose,
+    footer: React.createElement(React.Fragment, null,
+      React.createElement('button',{className:'btn btn-ghost',onClick:onClose},'Annuler'),
+      React.createElement('button',{className:'btn btn-primary',onClick:submit,disabled:loading}, loading?'Création…':'✅ Créer')
+    )
+  },
+    ['name','sector','size'].map(k => React.createElement('div',{key:k,className:'form-group'},
+      React.createElement('label',{className:'form-label'}, k==='name'?'Nom de l\'entreprise':k==='sector'?'Secteur d\'activité':'Nombre d\'employés'),
+      React.createElement('input',{className:'form-input',type:k==='size'?'number':'text',
+        placeholder:k==='name'?'Ex: Sentel Industries SA':k==='sector'?'Ex: Technologie, Finance…':'Ex: 50',
+        value:form[k],onChange:upd(k)})
+    ))
+  );
+}
+
+function AddEmployeeModal({ companyId, onAdd, onClose }) {
+  const [form, setForm] = useState({ name:'', email:'', post:'', dept:'dev' });
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+  const upd = k => e => setForm(f => ({...f,[k]:e.target.value}));
+  async function submit() {
+    if (!form.name.trim() || !form.post.trim()) { setErr('Nom et poste sont requis'); return; }
+    setLoading(true);
+    await onAdd({ ...form, company_id:companyId, color:randColor() });
+    setLoading(false); onClose();
+  }
+  return React.createElement(Modal, { title:'➕ Nouvel employé', onClose,
+    footer: React.createElement(React.Fragment, null,
+      React.createElement('button',{className:'btn btn-ghost',onClick:onClose},'Annuler'),
+      React.createElement('button',{className:'btn btn-primary',onClick:submit,disabled:loading}, loading?'Ajout…':'✅ Ajouter')
+    )
+  },
+    err && React.createElement('div',{className:'auth-error',style:{marginBottom:12}},'⚠️ '+err),
+    React.createElement('div',{className:'form-group'},React.createElement('label',{className:'form-label'},'Nom complet'),React.createElement('input',{className:'form-input',type:'text',placeholder:'Ex: Fatou Seck',value:form.name,onChange:upd('name')})),
+    React.createElement('div',{className:'form-group'},React.createElement('label',{className:'form-label'},'Email professionnel'),React.createElement('input',{className:'form-input',type:'email',placeholder:'f.seck@entreprise.com',value:form.email,onChange:upd('email')})),
+    React.createElement('div',{className:'form-group'},React.createElement('label',{className:'form-label'},'Poste / Titre'),React.createElement('input',{className:'form-input',type:'text',placeholder:'Ex: Développeur Backend',value:form.post,onChange:upd('post')})),
+    React.createElement('div',{className:'form-group'},React.createElement('label',{className:'form-label'},'Département'),
+      React.createElement('select',{className:'form-input',value:form.dept,onChange:upd('dept')},
+        DEPTS.map(d => React.createElement('option',{key:d.id,value:d.id},d.label))
+      )
+    )
+  );
+}
+
+function RegisterBiometricModal({ employee, onDone, onClose }) {
+  const [phase, setPhase] = useState('idle'); // idle|scanning|success|error|unsupported
+  const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    if (!bio.isSupported()) setPhase('unsupported');
+  }, []);
+
+  async function startRegister() {
+    setPhase('scanning'); setMsg('');
+    try {
+      const credId = await bio.register(employee.id, employee.name);
+      setPhase('success');
+      setTimeout(() => { onDone(credId); }, 900);
+    } catch(e) {
+      setPhase('error');
+      setMsg(e.message || 'Échec de l\'enregistrement biométrique');
+    }
+  }
+
+  const icon = phase==='success'?'✅':phase==='error'?'❌':phase==='unsupported'?'🚫':'👆';
+  const ringClass = `bio-ring ${phase}`;
+
+  return React.createElement(Modal, { title:'🔐 Enregistrement biométrique', onClose },
+    React.createElement('div',{style:{textAlign:'center',padding:'10px 0 20px'}},
+      React.createElement('div',{className:'emp-row',style:{justifyContent:'center',marginBottom:24}},
+        React.createElement('div',{className:'emp-avatar',style:{background:employee.color,width:42,height:42,fontSize:15}}, initials(employee.name)),
+        React.createElement('div',null,
+          React.createElement('div',{style:{fontWeight:600}},employee.name),
+          React.createElement('div',{style:{fontSize:12,color:'var(--text3)'}},employee.post)
+        )
+      ),
+      React.createElement('div',{className:ringClass,onClick:phase==='idle'||phase==='error'?startRegister:undefined}, icon),
+      React.createElement('p',{style:{color:'var(--text2)',fontSize:13,marginBottom:8}},
+        phase==='idle'?'Appuyez sur l\'icône pour lancer la biométrie':
+        phase==='scanning'?'Vérification en cours… (Face ID / Empreinte)':
+        phase==='success'?'✅ Biométrie enregistrée avec succès !':
+        phase==='unsupported'?'❌ WebAuthn non supporté sur ce navigateur/appareil':
+        '❌ Erreur : '+msg
+      ),
+      phase==='unsupported' && React.createElement('div',{style:{fontSize:12,color:'var(--text3)',maxWidth:320,margin:'0 auto',lineHeight:1.6}},
+        'La biométrie nécessite un smartphone ou ordinateur moderne avec Safari, Chrome ou Firefox récent, et HTTPS.'
+      ),
+      (phase==='error') && React.createElement('button',{className:'btn btn-ghost',style:{marginTop:12},onClick:startRegister},'🔄 Réessayer')
+    )
+  );
+}
+
+function PointageModal({ employee, action, bioRequired, onConfirm, onClose }) {
+  const [phase, setPhase] = useState('confirm'); // confirm|bioscanning|biosuccess|bioerror
+  const [bioMsg, setBioMsg] = useState('');
+  const meta = TYPE_META[action] || {};
+
+  async function proceed() {
+    if (bioRequired && employee.webauthn_credential) {
+      setPhase('bioscanning');
+      try {
+        await bio.verify(employee.webauthn_credential);
+        setPhase('biosuccess');
+        setTimeout(() => onConfirm(true), 700);
+      } catch(e) {
+        setPhase('bioerror');
+        setBioMsg(e.message || 'Échec biométrie');
+      }
+    } else {
+      onConfirm(false);
+    }
+  }
+
+  if (phase === 'bioscanning' || phase === 'biosuccess' || phase === 'bioerror') {
+    const icon2 = phase==='biosuccess'?'✅':phase==='bioerror'?'❌':'👆';
+    const ring2 = `bio-ring ${phase==='bioscanning'?'scanning':phase==='biosuccess'?'success':'error'}`;
+    return React.createElement(Modal, { title:'🔐 Vérification biométrique', onClose },
+      React.createElement('div',{style:{textAlign:'center',padding:'10px 0 20px'}},
+        React.createElement('div',{className:ring2}, icon2),
+        React.createElement('p',{style:{color:'var(--text2)',fontSize:13}},
+          phase==='bioscanning'?'Posez votre doigt ou regardez la caméra…':
+          phase==='biosuccess'?'✅ Identité confirmée !':
+          '❌ '+bioMsg
+        ),
+        phase==='bioerror' && React.createElement('div',{style:{display:'flex',gap:8,justifyContent:'center',marginTop:14}},
+          React.createElement('button',{className:'btn btn-ghost',onClick:onClose},'Annuler'),
+          React.createElement('button',{className:'btn btn-primary',onClick:proceed},'🔄 Réessayer')
+        )
+      )
+    );
+  }
+
+  return React.createElement(Modal, { title:`${meta.icon||''} Pointage — ${meta.label}`, onClose,
+    footer: React.createElement(React.Fragment, null,
+      React.createElement('button',{className:'btn btn-ghost',onClick:onClose},'Annuler'),
+      React.createElement('button',{className:'btn btn-primary',onClick:proceed},
+        employee.webauthn_credential?'👆 Valider biométrie':'✅ Confirmer le pointage'
+      )
+    )
+  },
+    React.createElement('div',{style:{textAlign:'center'}},
+      React.createElement('div',{className:'emp-row',style:{justifyContent:'center',marginBottom:16,padding:'16px',background:'var(--bg3)',borderRadius:12}},
+        React.createElement('div',{className:'emp-avatar',style:{background:employee.color,width:46,height:46,fontSize:16}}, initials(employee.name)),
+        React.createElement('div',{style:{textAlign:'left'}},
+          React.createElement('div',{style:{fontWeight:600}},employee.name),
+          React.createElement('div',{style:{fontSize:12,color:'var(--text3)'}},employee.post)
+        )
+      ),
+      React.createElement('div',{style:{fontSize:28,fontFamily:'var(--font-head)',fontWeight:800,color:meta.color}}, fmtTime(new Date())),
+      React.createElement('div',{style:{fontSize:12,color:'var(--text3)',marginTop:4}}, fmtDate(new Date())),
+      !employee.webauthn_credential && React.createElement('div',{style:{fontSize:12,color:'var(--amber)',marginTop:12,padding:'8px 12px',background:'var(--amber-bg)',borderRadius:8}},
+        '⚠️ Aucune biométrie enregistrée — pointage sans vérification'
+      )
+    )
+  );
+}
+
+function AddCongeModal({ employees, companyId, onAdd, onClose }) {
+  const [form, setForm] = useState({ emp_id:'', type:'annuel', start_date:'', end_date:'', reason:'' });
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+  const upd = k => e => setForm(f => ({...f,[k]:e.target.value}));
+  const empList = employees.filter(e => e.company_id === companyId);
+  const days = form.start_date && form.end_date ? diffDays(form.start_date, form.end_date) : 0;
+
+  async function submit() {
+    if (!form.emp_id || !form.start_date || !form.end_date) { setErr('Veuillez remplir tous les champs requis'); return; }
+    if (new Date(form.end_date) < new Date(form.start_date)) { setErr('La date de fin doit être après le début'); return; }
+    setLoading(true);
+    await onAdd({ ...form, company_id:companyId, days, status:'en_attente' });
+    setLoading(false); onClose();
+  }
+
+  return React.createElement(Modal, { title:'🌴 Nouvelle demande de congé', onClose,
+    footer: React.createElement(React.Fragment, null,
+      React.createElement('button',{className:'btn btn-ghost',onClick:onClose},'Annuler'),
+      React.createElement('button',{className:'btn btn-primary',onClick:submit,disabled:loading}, loading?'Enregistrement…':'✅ Soumettre')
+    )
+  },
+    err && React.createElement('div',{className:'auth-error',style:{marginBottom:12}},'⚠️ '+err),
+    React.createElement('div',{className:'form-group'},
+      React.createElement('label',{className:'form-label'},'Employé *'),
+      React.createElement('select',{className:'form-input',value:form.emp_id,onChange:upd('emp_id')},
+        React.createElement('option',{value:''},'— Sélectionner —'),
+        empList.map(e => React.createElement('option',{key:e.id,value:e.id},e.name+' ('+e.post+')'))
+      )
+    ),
+    React.createElement('div',{className:'form-group'},
+      React.createElement('label',{className:'form-label'},'Type de congé'),
+      React.createElement('select',{className:'form-input',value:form.type,onChange:upd('type')},
+        CONGE_TYPES.map(t => React.createElement('option',{key:t.id,value:t.id},t.icon+' '+t.label))
+      )
+    ),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+      React.createElement('div',{className:'form-group'},
+        React.createElement('label',{className:'form-label'},'Date début *'),
+        React.createElement('input',{className:'form-input',type:'date',value:form.start_date,onChange:upd('start_date')})
+      ),
+      React.createElement('div',{className:'form-group'},
+        React.createElement('label',{className:'form-label'},'Date fin *'),
+        React.createElement('input',{className:'form-input',type:'date',value:form.end_date,onChange:upd('end_date')})
+      )
+    ),
+    days > 0 && React.createElement('div',{style:{padding:'8px 12px',background:'var(--blue-bg)',borderRadius:8,fontSize:13,color:'var(--blue)',marginBottom:12}},
+      `📅 Durée : ${days} jour${days>1?'s':''}`
+    ),
+    React.createElement('div',{className:'form-group'},
+      React.createElement('label',{className:'form-label'},'Motif (optionnel)'),
+      React.createElement('textarea',{className:'form-input',rows:3,placeholder:'Ex: Vacances familiales, opération médicale…',value:form.reason,onChange:upd('reason'),style:{resize:'vertical'}})
+    )
+  );
+}
+
+/* ─────────────────────────────────────────────
+   PAGES
+───────────────────────────────────────────── */
+function DashboardPage({ company, employees, pointages, conges }) {
+  const today = todayStr();
+  const emps = employees.filter(e => e.company_id === company.id);
+  const ptgsToday = pointages.filter(p => p.company_id === company.id && p.date === today);
+  const present = emps.filter(e => computeStatus(e.id, pointages) === 'present').length;
+  const pause   = emps.filter(e => computeStatus(e.id, pointages) === 'pause').length;
+  const absent  = emps.filter(e => computeStatus(e.id, pointages) === 'absent').length;
+  const pct = emps.length ? Math.round(((present+pause)/emps.length)*100) : 0;
+  const congesActifs = conges.filter(c => c.company_id===company.id && c.status==='approuve' && c.start_date<=today && c.end_date>=today).length;
+  const recentPtgs = [...ptgsToday].sort((a,b)=>b.ts-a.ts).slice(0,8);
+
+  return React.createElement('div', null,
+    React.createElement('div',{className:'page-header'},
+      React.createElement('div',null,
+        React.createElement('h2',null,'Bonjour 👋'),
+        React.createElement('p',null,`${company.name} — ${fmtDate(new Date())}`)
+      )
+    ),
+
+    React.createElement('div',{className:'grid-4',style:{marginBottom:20}},
+      [
+        {label:'Présents',  val:present,      color:'var(--green)',  bg:'green',    icon:'✅'},
+        {label:'En pause',  val:pause,        color:'var(--amber)',  bg:'amber',    icon:'⏸'},
+        {label:'Absents',   val:absent,       color:'var(--red)',    bg:'red',      icon:'❌'},
+        {label:'Présence',  val:`${pct}%`,    color:'var(--blue)',   bg:'blue',     icon:'📊'},
+      ].map(s => React.createElement('div',{key:s.label,className:`stat-card ${s.bg}`},
+        React.createElement('div',{className:'stat-icon'},s.icon),
+        React.createElement('div',{className:'stat-val',style:{color:s.color}},s.val),
+        React.createElement('div',{className:'stat-label'},s.label),
+        React.createElement('div',{className:'pbar',style:{marginTop:10}},
+          React.createElement('div',{className:'pbar-fill',style:{width:`${emps.length?((typeof s.val==='string'?pct:s.val)/emps.length*100):0}%`,background:s.color}})
+        )
+      ))
+    ),
+
+    congesActifs > 0 && React.createElement('div',{style:{background:'var(--amber-bg)',border:'1px solid rgba(253,203,110,.2)',borderRadius:12,padding:'12px 16px',marginBottom:16,fontSize:13,color:'var(--amber)',display:'flex',alignItems:'center',gap:10}},
+      '🌴', React.createElement('span',null,`${congesActifs} employé(s) actuellement en congé`)
+    ),
+
+    React.createElement('div',{className:'grid-2',style:{gap:16}},
+      React.createElement('div',{className:'card'},
+        React.createElement('div',{className:'section-hdr'},
+          React.createElement('div',{className:'section-title'},'👥 Équipe du jour'),
+          React.createElement('span',{className:'badge badge-gray'},`${emps.length} personnes`)
+        ),
+        emps.length === 0
+          ? React.createElement('div',{className:'empty',style:{padding:24}},React.createElement('div',{className:'empty-text'},'Aucun employé'))
+          : emps.slice(0,7).map(emp => {
+              const st = computeStatus(emp.id, pointages);
+              const badgeCls = st==='present'?'badge-green':st==='pause'?'badge-amber':'badge-red';
+              const stLabel = st==='present'?'Présent':st==='pause'?'En pause':'Absent';
+              const dept = DEPTS.find(d=>d.id===emp.dept);
+              return React.createElement('div',{key:emp.id,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid var(--border)'}},
+                React.createElement('div',{className:'emp-row'},
+                  React.createElement('div',{className:'emp-avatar',style:{background:emp.color,width:34,height:34,fontSize:12}},initials(emp.name)),
+                  React.createElement('div',null,
+                    React.createElement('div',{className:'emp-name'},emp.name),
+                    React.createElement('div',{className:'emp-meta'},dept?dept.label:'')
+                  )
+                ),
+                React.createElement('span',{className:`badge ${badgeCls}`},stLabel)
+              );
+            })
+      ),
+
+      React.createElement('div',{className:'card'},
+        React.createElement('div',{className:'section-hdr'},
+          React.createElement('div',{className:'section-title'},'🕐 Derniers pointages'),
+          React.createElement('span',{className:'badge badge-gray'},'Aujourd\'hui')
+        ),
+        recentPtgs.length === 0
+          ? React.createElement('div',{className:'empty',style:{padding:24}},React.createElement('div',{className:'empty-icon'},'📋'),React.createElement('div',{className:'empty-text'},'Aucun pointage aujourd\'hui'))
+          : React.createElement('div',{className:'timeline'},
+              recentPtgs.map(p => {
+                const emp = employees.find(e=>e.id===p.emp_id);
+                const meta = TYPE_META[p.type]||{};
+                return React.createElement('div',{key:p.id,className:'tl-item'},
+                  React.createElement('div',{className:'tl-dot',style:{background:meta.color}}),
+                  React.createElement('div',{className:'tl-time'},p.time),
+                  React.createElement('div',{style:{flex:1}},
+                    React.createElement('div',{style:{fontSize:13,fontWeight:500}},emp?emp.name:'?'),
+                    React.createElement('div',{style:{fontSize:11,color:'var(--text3)'}},meta.label)
+                  ),
+                  p.biometric_used && React.createElement('span',{className:'badge badge-green',style:{fontSize:10}},'👆')
+                );
+              })
+            )
+      )
+    )
+  );
+}
+
+function PointagePage({ company, employees, pointages, onPointage }) {
+  const [search, setSearch] = useState('');
+  const [modal, setModal] = useState(null); // { emp, action }
+
+  const emps = employees.filter(e => e.company_id === company.id)
+    .filter(e => !search || e.name.toLowerCase().includes(search.toLowerCase()) || e.post.toLowerCase().includes(search.toLowerCase()));
+
+  function getActions(emp) {
+    const todayPtgs = pointages.filter(p => p.emp_id===emp.id && p.date===todayStr());
+    const has = t => todayPtgs.some(p => p.type===t);
+    return {
+      entree:      !has('entree') && !has('sortie'),
+      pause_debut: has('entree') && !has('pause_debut') && !has('sortie'),
+      pause_fin:   has('pause_debut') && !has('pause_fin') && !has('sortie'),
+      sortie:      has('entree') && !has('sortie'),
+    };
+  }
+
+  return React.createElement('div', null,
+    React.createElement('div',{className:'page-header'},
+      React.createElement('div',null,
+        React.createElement('h2',null,'⏱ Pointage du jour'),
+        React.createElement('p',null,`${fmtDate(new Date())} — ${company.name}`)
+      )
+    ),
+    React.createElement('input',{className:'form-input',type:'text',placeholder:'🔍 Rechercher un employé…',value:search,onChange:e=>setSearch(e.target.value),style:{maxWidth:320,marginBottom:18}}),
+
+    employees.filter(e=>e.company_id===company.id).length === 0
+      ? React.createElement('div',{className:'empty'},
+          React.createElement('div',{className:'empty-icon'},'👥'),
+          React.createElement('div',{className:'empty-text'},'Aucun employé dans cette entreprise')
+        )
+      : React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:10}},
+          emps.map(emp => {
+            const acts = getActions(emp);
+            const st = computeStatus(emp.id, pointages);
+            const dept = DEPTS.find(d=>d.id===emp.dept);
+            const badgeCls = st==='present'?'badge-green':st==='pause'?'badge-amber':'badge-red';
+            const stLabel = st==='present'?'Présent':st==='pause'?'En pause':'Absent';
+            return React.createElement('div',{key:emp.id,className:'card',style:{padding:'16px 20px'}},
+              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}},
+                React.createElement('div',{className:'emp-avatar',style:{background:emp.color,width:44,height:44,fontSize:16,flexShrink:0}},initials(emp.name)),
+                React.createElement('div',{style:{flex:1,minWidth:150}},
+                  React.createElement('div',{style:{fontWeight:600,fontSize:15}},emp.name),
+                  React.createElement('div',{style:{fontSize:12,color:'var(--text3)',marginTop:2}},emp.post+(dept?' · '+dept.label:''))
+                ),
+                React.createElement('span',{className:`badge ${badgeCls}`},stLabel),
+                emp.webauthn_credential && React.createElement('span',{className:'badge badge-violet',title:'Biométrie enregistrée'},'👆 Bio'),
+                React.createElement('div',{className:'ptg-grid'},
+                  [
+                    { key:'entree',     icon:'✅', label:'Entrée',  cls:acts.entree?'active-in':'',   act:'entree'     },
+                    { key:'pause',      icon:acts.pause_fin?'▶':'⏸', label:acts.pause_fin?'Fin pause':'Pause', cls:acts.pause_debut||acts.pause_fin?'active-pause':'', act:acts.pause_fin?'pause_fin':'pause_debut' },
+                    { key:'sortie',     icon:'🚪', label:'Sortie',  cls:acts.sortie?'active-out':'',  act:'sortie'     },
+                  ].map(b => React.createElement('button',{key:b.key,className:`ptg-btn ${b.cls}`,
+                    disabled:b.key==='entree'?!acts.entree:b.key==='pause'?(!acts.pause_debut&&!acts.pause_fin):!acts.sortie,
+                    onClick:()=>setModal({emp,action:b.act})},
+                    React.createElement('span',{className:'ptg-icon'},b.icon),b.label
+                  ))
+                )
+              )
+            );
+          })
+        ),
+
+    modal && React.createElement(PointageModal, {
+      employee: modal.emp,
+      action: modal.action,
+      bioRequired: true,
+      onConfirm: (bioUsed) => { onPointage(modal.emp, modal.action, bioUsed); setModal(null); },
+      onClose: () => setModal(null)
+    })
+  );
+}
+
+function EmployeesPage({ company, employees, onAdd, onDelete, onBioRegister }) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [bioEmp, setBioEmp] = useState(null);
+  const [deptFilter, setDeptFilter] = useState('all');
+  const emps = employees.filter(e => e.company_id === company.id);
+  const filtered = deptFilter === 'all' ? emps : emps.filter(e => e.dept === deptFilter);
+
+  return React.createElement('div', null,
+    React.createElement('div',{className:'page-header'},
+      React.createElement('div',null,
+        React.createElement('h2',null,'👥 Employés'),
+        React.createElement('p',null,`${emps.length} employé(s) — ${company.name}`)
+      ),
+      React.createElement('button',{className:'btn btn-primary',onClick:()=>setShowAdd(true)},'➕ Ajouter')
+    ),
+
+    React.createElement('div',{className:'tabs'},
+      React.createElement('div',{className:`tab${deptFilter==='all'?' active':''}`,onClick:()=>setDeptFilter('all')},`Tous (${emps.length})`),
+      ...DEPTS.map(d=>{const cnt=emps.filter(e=>e.dept===d.id).length;return cnt>0?React.createElement('div',{key:d.id,className:`tab${deptFilter===d.id?' active':''}`,onClick:()=>setDeptFilter(d.id)},`${d.label} (${cnt})`):null}).filter(Boolean)
+    ),
+
+    React.createElement('div',{className:'card',style:{padding:0}},
+      React.createElement('div',{className:'table-wrap'},
+        React.createElement('table',null,
+          React.createElement('thead',null,React.createElement('tr',null,
+            ['Employé','Poste','Département','Biométrie','Actions'].map(h=>React.createElement('th',{key:h},h))
+          )),
+          React.createElement('tbody',null,
+            filtered.length === 0
+              ? React.createElement('tr',null,React.createElement('td',{colSpan:5,style:{textAlign:'center',padding:40,color:'var(--text3)'}},'Aucun employé'))
+              : filtered.map(emp => {
+                  const dept = DEPTS.find(d=>d.id===emp.dept);
+                  return React.createElement('tr',{key:emp.id},
+                    React.createElement('td',null,
+                      React.createElement('div',{className:'emp-row'},
+                        React.createElement('div',{className:'emp-avatar',style:{background:emp.color,width:34,height:34,fontSize:13}},initials(emp.name)),
+                        React.createElement('div',null,
+                          React.createElement('div',{className:'emp-name'},emp.name),
+                          React.createElement('div',{className:'emp-meta'},emp.email||'—')
+                        )
+                      )
+                    ),
+                    React.createElement('td',{style:{color:'var(--text2)',fontSize:13}},emp.post),
+                    React.createElement('td',null,dept?React.createElement('span',null,React.createElement('span',{className:'dept-dot',style:{background:dept.color}}),dept.label):'—'),
+                    React.createElement('td',null,
+                      emp.webauthn_credential
+                        ? React.createElement('span',{className:'badge badge-green'},'👆 Enregistrée')
+                        : React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setBioEmp(emp)},'+ Enregistrer')
+                    ),
+                    React.createElement('td',null,
+                      React.createElement('div',{className:'row-actions'},
+                        emp.webauthn_credential && React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setBioEmp(emp),title:'Mettre à jour biométrie'},'🔄'),
+                        React.createElement('button',{className:'btn btn-danger btn-sm',onClick:()=>{ if(confirm(`Supprimer ${emp.name} ?`)) onDelete(emp.id); }},'🗑')
+                      )
+                    )
+                  );
+                })
+          )
+        )
+      )
+    ),
+
+    showAdd && React.createElement(AddEmployeeModal, { companyId:company.id, onAdd, onClose:()=>setShowAdd(false) }),
+    bioEmp && React.createElement(RegisterBiometricModal, {
+      employee: bioEmp,
+      onDone: credId => { onBioRegister(bioEmp.id, credId); setBioEmp(null); },
+      onClose: ()=>setBioEmp(null)
+    })
+  );
+}
+
+function CongesPage({ company, employees, conges, onAdd, onUpdateStatus }) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const empMap = Object.fromEntries(employees.map(e=>[e.id,e]));
+
+  const list = conges
+    .filter(c => c.company_id === company.id)
+    .filter(c => statusFilter === 'all' || c.status === statusFilter)
+    .sort((a,b) => b.created_at?.localeCompare(a.created_at||'')||0);
+
+  const stats = {
+    total:     conges.filter(c=>c.company_id===company.id).length,
+    attente:   conges.filter(c=>c.company_id===company.id&&c.status==='en_attente').length,
+    approuve:  conges.filter(c=>c.company_id===company.id&&c.status==='approuve').length,
+    refuse:    conges.filter(c=>c.company_id===company.id&&c.status==='refuse').length,
+  };
+
+  return React.createElement('div', null,
+    React.createElement('div',{className:'page-header'},
+      React.createElement('div',null,
+        React.createElement('h2',null,'🌴 Gestion des congés'),
+        React.createElement('p',null,company.name)
+      ),
+      React.createElement('button',{className:'btn btn-primary',onClick:()=>setShowAdd(true)},'➕ Nouvelle demande')
+    ),
+
+    React.createElement('div',{className:'grid-4',style:{marginBottom:20}},
+      [
+        {label:'Total demandes', val:stats.total,    color:'var(--blue)',   bg:'blue'},
+        {label:'En attente',     val:stats.attente,  color:'var(--amber)',  bg:'amber'},
+        {label:'Approuvés',      val:stats.approuve, color:'var(--green)',  bg:'green'},
+        {label:'Refusés',        val:stats.refuse,   color:'var(--red)',    bg:'red'},
+      ].map(s => React.createElement('div',{key:s.label,className:`stat-card ${s.bg}`},
+        React.createElement('div',{className:'stat-val',style:{color:s.color}},s.val),
+        React.createElement('div',{className:'stat-label'},s.label)
+      ))
+    ),
+
+    React.createElement('div',{className:'tabs'},
+      [{id:'all',label:'Tous'},{id:'en_attente',label:'En attente'},{id:'approuve',label:'Approuvés'},{id:'refuse',label:'Refusés'}].map(t =>
+        React.createElement('div',{key:t.id,className:`tab${statusFilter===t.id?' active':''}`,onClick:()=>setStatusFilter(t.id)},t.label)
+      )
+    ),
+
+    list.length === 0
+      ? React.createElement('div',{className:'empty'},React.createElement('div',{className:'empty-icon'},'🌴'),React.createElement('div',{className:'empty-text'},'Aucune demande de congé'))
+      : list.map(c => {
+          const emp = empMap[c.emp_id];
+          const ct = CONGE_TYPES.find(t=>t.id===c.type)||CONGE_TYPES[0];
+          const st = CONGE_STATUS[c.status]||CONGE_STATUS.en_attente;
+          return React.createElement('div',{key:c.id,className:'conge-card'},
+            React.createElement('div',{style:{fontSize:24,flexShrink:0}},ct.icon),
+            React.createElement('div',{className:'conge-body'},
+              React.createElement('div',{className:'conge-name'},emp?emp.name:'Employé inconnu'),
+              React.createElement('div',{style:{fontSize:13,fontWeight:500,color:'var(--text)',marginTop:2}},ct.label),
+              React.createElement('div',{className:'conge-meta'},
+                `📅 ${fmtShortDate(c.start_date)} → ${fmtShortDate(c.end_date)}`,
+                c.days ? ` · ${c.days} jour${c.days>1?'s':''}` : '',
+                c.reason ? ` · ${c.reason}` : ''
+              )
+            ),
+            React.createElement('div',{className:'conge-actions'},
+              React.createElement('span',{className:`badge ${st.badge}`},st.label),
+              c.status === 'en_attente' && React.createElement(React.Fragment, null,
+                React.createElement('button',{className:'btn btn-success btn-sm',onClick:()=>onUpdateStatus(c.id,'approuve')},'✅'),
+                React.createElement('button',{className:'btn btn-danger btn-sm',onClick:()=>onUpdateStatus(c.id,'refuse')},'❌')
+              )
+            )
+          );
+        }),
+
+    showAdd && React.createElement(AddCongeModal, {
+      employees, companyId:company.id,
+      onAdd, onClose:()=>setShowAdd(false)
+    })
+  );
+}
+
+function HistoryPage({ company, employees, pointages }) {
+  const [dateFilter, setDateFilter] = useState(todayStr());
+  const [empFilter, setEmpFilter] = useState('all');
+  const emps = employees.filter(e => e.company_id === company.id);
+
+  const filtered = pointages
+    .filter(p => p.company_id === company.id)
+    .filter(p => !dateFilter || p.date === dateFilter)
+    .filter(p => empFilter === 'all' || p.emp_id === empFilter)
+    .sort((a,b) => b.ts - a.ts);
+
+  return React.createElement('div', null,
+    React.createElement('div',{className:'page-header'},
+      React.createElement('h2',null,'📋 Historique des pointages'),
+      React.createElement('p',null,company.name)
+    ),
+
+    React.createElement('div',{style:{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}},
+      React.createElement('input',{type:'date',className:'form-input',value:dateFilter,onChange:e=>setDateFilter(e.target.value),style:{width:'auto'}}),
+      React.createElement('select',{className:'form-input',value:empFilter,onChange:e=>setEmpFilter(e.target.value),style:{width:'auto'}},
+        React.createElement('option',{value:'all'},'Tous les employés'),
+        emps.map(e=>React.createElement('option',{key:e.id,value:e.id},e.name))
+      ),
+      React.createElement('button',{className:'btn btn-ghost',onClick:()=>{setDateFilter('');setEmpFilter('all')}},'Réinitialiser')
+    ),
+
+    React.createElement('div',{className:'card',style:{padding:0}},
+      React.createElement('div',{className:'table-wrap'},
+        React.createElement('table',null,
+          React.createElement('thead',null,React.createElement('tr',null,
+            ['Date','Heure','Employé','Action','Biométrie'].map(h=>React.createElement('th',{key:h},h))
+          )),
+          React.createElement('tbody',null,
+            filtered.length === 0
+              ? React.createElement('tr',null,React.createElement('td',{colSpan:5,style:{textAlign:'center',padding:40,color:'var(--text3)'}},'Aucun pointage'))
+              : filtered.map(p => {
+                  const emp = employees.find(e=>e.id===p.emp_id);
+                  const meta = TYPE_META[p.type]||{};
+                  return React.createElement('tr',{key:p.id},
+                    React.createElement('td',{style:{color:'var(--text3)',fontSize:12}},p.date),
+                    React.createElement('td',null,React.createElement('span',{style:{fontFamily:'var(--font-head)',fontWeight:700,fontSize:13}},p.time)),
+                    React.createElement('td',null,
+                      emp ? React.createElement('div',{className:'emp-row'},
+                        React.createElement('div',{className:'emp-avatar',style:{background:emp.color,width:28,height:28,fontSize:11}},initials(emp.name)),
+                        emp.name
+                      ) : '?'
+                    ),
+                    React.createElement('td',null,React.createElement('span',{className:`badge ${meta.badge||'badge-gray'}`},meta.icon+' '+meta.label)),
+                    React.createElement('td',null,p.biometric_used?React.createElement('span',{className:'badge badge-violet'},'👆 Oui'):React.createElement('span',{className:'badge badge-gray'},'Non'))
+                  );
+                })
+          )
+        )
+      )
+    )
+  );
+}
+
+function CompaniesPage({ user, companies, employees, onAdd }) {
+  const [showAdd, setShowAdd] = useState(false);
+
+  return React.createElement('div', null,
+    React.createElement('div',{className:'page-header'},
+      React.createElement('div',null,
+        React.createElement('h2',null,'🏢 Mes entreprises'),
+        React.createElement('p',null,`Compte : ${user?.email}`)
+      ),
+      React.createElement('button',{className:'btn btn-primary',onClick:()=>setShowAdd(true)},'➕ Créer une entreprise')
+    ),
+
+    companies.length === 0
+      ? React.createElement('div',{className:'empty'},
+          React.createElement('div',{className:'empty-icon'},'🏢'),
+          React.createElement('div',{className:'empty-text'},'Aucune entreprise — commencez par en créer une'),
+          React.createElement('button',{className:'btn btn-primary',onClick:()=>setShowAdd(true)},'➕ Créer ma première entreprise')
+        )
+      : React.createElement('div',{className:'grid-3'},
+          companies.map(c => {
+            const empCnt = employees.filter(e=>e.company_id===c.id).length;
+            return React.createElement('div',{key:c.id,className:'card'},
+              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:14}},
+                React.createElement('div',{style:{width:44,height:44,borderRadius:12,background:c.color+'22',border:`2px solid ${c.color}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}},'🏢'),
+                React.createElement('div',null,
+                  React.createElement('div',{style:{fontFamily:'var(--font-head)',fontWeight:700,fontSize:15}},c.name),
+                  React.createElement('div',{style:{fontSize:12,color:'var(--text3)'}},c.sector||'—')
+                )
+              ),
+              React.createElement('div',{style:{display:'flex',gap:8}},
+                React.createElement('span',{className:'badge badge-gray'},`👥 ${empCnt} employés`),
+                c.size && React.createElement('span',{className:'badge badge-gray'},`📊 ${c.size} prévus`)
+              )
+            );
+          })
+        ),
+
+    showAdd && React.createElement(AddCompanyModal, { onAdd, onClose:()=>setShowAdd(false) })
+  );
+}
+
+/* ─────────────────────────────────────────────
+   MAIN APP
+───────────────────────────────────────────── */
+function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [page, setPage]   = useState('dashboard');
+  const [companies, setCompanies]     = useState([]);
+  const [employees, setEmployees]     = useState([]);
+  const [pointages, setPointages]     = useState([]);
+  const [conges, setConges]           = useState([]);
+  const [selectedCo, setSelectedCo]   = useState(null);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dbErr, setDbErr]             = useState(null);
+  const [toasts, setToasts]           = useState([]);
+  const [clock, setClock]             = useState(new Date());
+  const [sideOpen, setSideOpen]       = useState(false);
+
+  /* Clock */
+  useEffect(() => {
+    const t = setInterval(()=>setClock(new Date()),1000);
+    return ()=>clearInterval(t);
+  },[]);
+
+  /* Auth listener */
+  useEffect(() => {
+    db.auth.getSession().then(({data:{session}}) => {
+      setUser(session?.user||null);
+      setAuthLoading(false);
+    });
+    const {data:{subscription}} = db.auth.onAuthStateChange((_,session) => {
+      setUser(session?.user||null);
+    });
+    return ()=>subscription.unsubscribe();
+  },[]);
+
+  /* Load data when user changes */
+  useEffect(()=>{ if(user) loadAll(); else { setCompanies([]); setEmployees([]); setPointages([]); setConges([]); setSelectedCo(null); } },[user]);
+
+  async function loadAll() {
+    setDataLoading(true); setDbErr(null);
+    try {
+      const [coRes,empRes,ptgRes,cgRes] = await Promise.all([
+        db.from('companies').select('*').order('created_at',{ascending:true}),
+        db.from('employees').select('*').order('created_at',{ascending:true}),
+        db.from('pointages').select('*').order('ts',{ascending:true}),
+        db.from('conges').select('*').order('created_at',{ascending:false}),
+      ]);
+      if(coRes.error)throw coRes.error;
+      if(empRes.error)throw empRes.error;
+      if(ptgRes.error)throw ptgRes.error;
+      if(cgRes.error)throw cgRes.error;
+      setCompanies(coRes.data||[]);
+      setEmployees(empRes.data||[]);
+      setPointages(ptgRes.data||[]);
+      setConges(cgRes.data||[]);
+      if(coRes.data?.length && !selectedCo) setSelectedCo(coRes.data[0].id);
+    } catch(e){ setDbErr(e.message||'Erreur de connexion'); }
+    setDataLoading(false);
+  }
+
+  /* Toast */
+  function toast(msg,icon='✅') {
+    const id = Date.now();
+    setToasts(t=>[...t,{id,msg,icon}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),3200);
+  }
+
+  /* CRUD */
+  async function addCompany(data) {
+    const { data:saved, error } = await db.from('companies').insert({...data, user_id:user.id}).select().single();
+    if(error){toast('Erreur: '+error.message,'❌');return;}
+    setCompanies(cs=>[...cs,saved]);
+    setSelectedCo(saved.id);
+    toast(`${saved.name} créée !`,'🏢');
+  }
+
+  async function addEmployee(data) {
+    const { data:saved, error } = await db.from('employees').insert(data).select().single();
+    if(error){toast('Erreur: '+error.message,'❌');return;}
+    setEmployees(es=>[...es,saved]);
+    toast(`${saved.name} ajouté(e) !`,'👥');
+  }
+
+  async function deleteEmployee(id) {
+    const { error } = await db.from('employees').delete().eq('id',id);
+    if(error){toast('Erreur: '+error.message,'❌');return;}
+    setEmployees(es=>es.filter(e=>e.id!==id));
+    toast('Employé supprimé','🗑');
+  }
+
+  async function registerBiometric(empId, credId) {
+    const { data:saved, error } = await db.from('employees').update({ webauthn_credential:credId }).eq('id',empId).select().single();
+    if(error){toast('Erreur biométrie: '+error.message,'❌');return;}
+    setEmployees(es=>es.map(e=>e.id===empId?{...e,webauthn_credential:credId}:e));
+    toast(`Biométrie enregistrée pour ${saved.name}`,'👆');
+  }
+
+  async function handlePointage(emp, action, bioUsed) {
+    const now = new Date();
+    const row = { emp_id:emp.id, company_id:emp.company_id, type:action, date:todayStr(), time:fmtTime(now), ts:now.getTime(), biometric_used:bioUsed };
+    const { data:saved, error } = await db.from('pointages').insert(row).select().single();
+    if(error){toast('Erreur pointage: '+error.message,'❌');return;}
+    setPointages(ps=>[...ps,saved]);
+    const meta = TYPE_META[action]||{};
+    toast(`${emp.name} — ${meta.label} à ${fmtTime(now)}`, meta.icon);
+  }
+
+  async function addConge(data) {
+    const { data:saved, error } = await db.from('conges').insert(data).select().single();
+    if(error){toast('Erreur: '+error.message,'❌');return;}
+    setConges(cs=>[saved,...cs]);
+    toast('Demande de congé soumise','🌴');
+  }
+
+  async function updateCongeStatus(id, status) {
+    const { data:saved, error } = await db.from('conges').update({status}).eq('id',id).select().single();
+    if(error){toast('Erreur: '+error.message,'❌');return;}
+    setConges(cs=>cs.map(c=>c.id===id?{...c,status}:c));
+    toast(status==='approuve'?'Congé approuvé ✅':'Congé refusé ❌', status==='approuve'?'✅':'❌');
+  }
+
+  async function logout() {
+    await db.auth.signOut();
+    toast('Déconnecté','👋');
+  }
+
+  /* Loading / Auth gates */
+  if (authLoading) return React.createElement('div',{className:'fullscreen-loader'},
+    React.createElement('div',{className:'spin'}),
+    React.createElement('div',{style:{fontFamily:'var(--font-head)',fontSize:18,fontWeight:700,color:'var(--accent)'}},'PointPro'),
+  );
+
+  if (!user) return React.createElement(AuthScreen, { onAuth:setUser });
+
+  if (dataLoading) return React.createElement('div',{className:'fullscreen-loader'},
+    React.createElement('div',{className:'spin'}),
+    React.createElement('div',{style:{color:'var(--text2)',fontSize:14}},'Chargement des données…'),
+  );
+
+  if (dbErr) return React.createElement('div',{className:'fullscreen-loader'},
+    React.createElement('div',{style:{fontSize:36}},'⚠️'),
+    React.createElement('div',{style:{fontFamily:'var(--font-head)',fontSize:18,fontWeight:700,color:'var(--red)'}},'Erreur de base de données'),
+    React.createElement('div',{style:{fontFamily:'monospace',fontSize:12,color:'var(--text2)',maxWidth:460,textAlign:'center',background:'var(--bg3)',padding:'10px 16px',borderRadius:10}},dbErr),
+    React.createElement('div',{style:{fontSize:13,color:'var(--text3)',maxWidth:460,textAlign:'center'}},'👉 Exécutez SCHEMA.sql dans l\'éditeur SQL Supabase, puis rechargez'),
+    React.createElement('button',{className:'btn btn-primary',onClick:loadAll},'🔄 Réessayer')
+  );
+
+  const company = companies.find(c=>c.id===selectedCo);
+  const ptgCount = selectedCo ? pointages.filter(p=>p.company_id===selectedCo&&p.date===todayStr()).length : 0;
+  const congeAttente = selectedCo ? conges.filter(c=>c.company_id===selectedCo&&c.status==='en_attente').length : 0;
+
+  const navItems = [
+    { key:'dashboard', icon:'📊', label:'Tableau de bord' },
+    { key:'pointage',  icon:'⏱',  label:'Pointage', badge:ptgCount||null },
+    { key:'employees', icon:'👥', label:'Employés' },
+    { key:'conges',    icon:'🌴', label:'Congés', badge:congeAttente||null },
+    { key:'history',   icon:'📋', label:'Historique' },
+  ];
+
+  const pageTitles = { dashboard:'Tableau de bord', pointage:'Pointage', employees:'Employés', conges:'Congés', history:'Historique', companies:'Entreprises' };
+  const userInitials = (user.user_metadata?.full_name||user.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+
+  return React.createElement('div', { className:'app', onClick:()=>sideOpen&&setSideOpen(false) },
+
+    /* Sidebar */
+    React.createElement('nav', { className:`sidebar${sideOpen?' open':''}`, onClick:e=>e.stopPropagation() },
+      React.createElement('div',{className:'sidebar-logo'},
+        React.createElement('div',{className:'logo-mark'},
+          React.createElement('div',{className:'logo-icon'},'⏱'),
+          React.createElement('div',{className:'logo-text'},React.createElement('span',null,'Point'),'Pro')
+        )
+      ),
+
+      companies.length > 0 && React.createElement('div',{className:'sidebar-company'},
+        React.createElement('select',{className:'company-select',value:selectedCo||'',onChange:e=>{setSelectedCo(e.target.value);setPage('dashboard')}},
+          companies.map(c=>React.createElement('option',{key:c.id,value:c.id},'🏢 '+c.name))
+        )
+      ),
+
+      React.createElement('div',{className:'sidebar-nav'},
+        React.createElement('div',{className:'nav-section-label'},'Principal'),
+        navItems.map(item => React.createElement('div',{key:item.key,
+          className:`nav-item${page===item.key?' active':''}`,
+          onClick:()=>{setPage(item.key);setSideOpen(false)}},
+          React.createElement('span',null,item.icon),
+          item.label,
+          item.badge ? React.createElement('span',{className:'nav-badge'},item.badge) : null
+        )),
+        React.createElement('div',{className:'nav-section-label',style:{marginTop:12}},'Administration'),
+        React.createElement('div',{className:`nav-item${page==='companies'?' active':''}`,onClick:()=>{setPage('companies');setSideOpen(false)}},
+          '🏢','Mes entreprises',
+          React.createElement('span',{className:'nav-badge',style:{background:'var(--bg5)',color:'var(--text2)'}},companies.length)
+        )
+      ),
+
+      React.createElement('div',{className:'sidebar-footer'},
+        React.createElement('div',{className:'user-card'},
+          React.createElement('div',{className:'avatar'},userInitials),
+          React.createElement('div',{className:'user-info'},
+            React.createElement('div',{className:'user-name'},user.user_metadata?.full_name||'Admin'),
+            React.createElement('div',{className:'user-email'},user.email)
+          ),
+          React.createElement('button',{className:'logout-btn',onClick:logout,title:'Déconnexion'},'⏻')
+        )
+      )
+    ),
+
+    /* Main area */
+    React.createElement('div', { className:'main' },
+      React.createElement('header',{className:'topbar'},
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12}},
+          React.createElement('button',{className:'btn-icon menu-btn show-sm',onClick:e=>{e.stopPropagation();setSideOpen(v=>!v)}},'☰'),
+          React.createElement('div',{className:'page-title'},pageTitles[page]||page)
+        ),
+        React.createElement('div',{className:'topbar-right'},
+          React.createElement('div',null,
+            React.createElement('div',{className:'clock'},fmtTime(clock)),
+            React.createElement('div',{className:'date-str'},clock.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}))
+          )
+        )
+      ),
+
+      React.createElement('main',{className:'content'},
+        !company && page !== 'companies'
+          ? React.createElement('div',{className:'empty',style:{height:'60vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}},
+              React.createElement('div',{className:'empty-icon'},'🏢'),
+              React.createElement('div',{className:'empty-text'},'Aucune entreprise — commencez par en créer une'),
+              React.createElement('button',{className:'btn btn-primary',onClick:()=>setPage('companies')},'➕ Créer mon entreprise')
+            )
+          : React.createElement(React.Fragment, null,
+              page==='dashboard'  && React.createElement(DashboardPage,  {company,employees,pointages,conges}),
+              page==='pointage'   && React.createElement(PointagePage,   {company,employees,pointages,onPointage:handlePointage}),
+              page==='employees'  && React.createElement(EmployeesPage,  {company,employees,onAdd:addEmployee,onDelete:deleteEmployee,onBioRegister:registerBiometric}),
+              page==='conges'     && React.createElement(CongesPage,     {company,employees,conges,onAdd:addConge,onUpdateStatus:updateCongeStatus}),
+              page==='history'    && React.createElement(HistoryPage,    {company,employees,pointages}),
+              page==='companies'  && React.createElement(CompaniesPage,  {user,companies,employees,onAdd:addCompany})
+            )
+      )
+    ),
+
+    React.createElement(Toast, { toasts })
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
