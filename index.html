@@ -920,7 +920,7 @@ function AbsencesPage({company,employees,absences,onAdd,onDelete}){
       React.createElement('input',{type:'month',className:'fi',value:mf,onChange:e=>setMf(e.target.value),style:{width:'auto'}}),
       React.createElement('button',{className:'btn btn-g btn-sm',onClick:()=>setMf('')},'Tout')
     ),
-    list.length===0?React.createElement('div',{className:'empty'},React.createElement('div',{className:'empty-icon'},'✅'),React.createElement('div',{className:'empty-txt'},'Aucune absence'):null):
+    list.length===0?React.createElement('div',{className:'empty'},React.createElement('div',{className:'empty-icon'},'✅'),React.createElement('div',{className:'empty-txt'},'Aucune absence')):null,
     list.map(a=>{
       const emp=empMap[a.emp_id];const at=ABSENCE_TYPES.find(t=>t.id===a.type)||ABSENCE_TYPES[0];
       const bc=a.type==='absence_inj'?'b-rd':a.type==='retard'?'b-am':'b-gn';
