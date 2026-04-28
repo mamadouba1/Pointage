@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>PointPro RH — Suite RH Complète</title>
+<title>Pointage et RH</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -366,7 +366,7 @@ const bio={
     if(!this.ok())throw new Error('WebAuthn non supporté');
     const ch=crypto.getRandomValues(new Uint8Array(32));
     const uid=new TextEncoder().encode(id.replace(/-/g,'').substring(0,32));
-    const cred=await navigator.credentials.create({publicKey:{challenge:ch,rp:{name:'PointPro RH',id:location.hostname},user:{id:uid,name,displayName:name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},timeout:60000,attestation:'none'}});
+    const cred=await navigator.credentials.create({publicKey:{challenge:ch,rp:{name:'Pointage et RH',id:location.hostname},user:{id:uid,name,displayName:name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},timeout:60000,attestation:'none'}});
     return btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
   },
   async verify(b64){
@@ -679,7 +679,7 @@ function printPayslip(paie,emp,company){
     <tr class="total-row"><td><strong>SALAIRE NET</strong></td><td style="text-align:right"><strong>${fmtAmt(paie.net_salary,'')}</strong></td></tr>
   </table>
   <div class="net"><div class="net-label">Salaire Net à Payer</div><div class="net-amount">${fmtAmt(paie.net_salary,paie.currency||'XOF')}</div></div>
-  <div class="footer"><p>Document généré par PointPro RH — ${new Date().toLocaleDateString('fr-FR')}</p><p>Signature employeur: ___________________ &nbsp;&nbsp;&nbsp; Signature employé: ___________________</p></div>
+  <div class="footer"><p>Document généré par Pointage et RH — ${new Date().toLocaleDateString('fr-FR')}</p><p>Signature employeur: ___________________ &nbsp;&nbsp;&nbsp; Signature employé: ___________________</p></div>
   </body></html>`);
   w.document.close();w.print();
 }
@@ -1391,7 +1391,7 @@ function App(){
   async function logout(){await db.auth.signOut();toast('Déconnecté','👋');}
 
   /* Gates */
-  if(authLoad)return React.createElement('div',{className:'fullscreen'},React.createElement('div',{className:'spin'}),React.createElement('span',{style:{fontWeight:800,fontSize:19,color:'var(--ac)'}},'PointPro RH'));
+  if(authLoad)return React.createElement('div',{className:'fullscreen'},React.createElement('div',{className:'spin'}),React.createElement('span',{style:{fontWeight:800,fontSize:19,color:'var(--ac)'}},'Pointage et RH'));
   if(!user)return React.createElement(AuthScreen,{onAuth:setUser});
   if(dataLoad)return React.createElement('div',{className:'fullscreen'},React.createElement('div',{className:'spin'}),React.createElement('span',{style:{color:'var(--tx3)',fontSize:12}},'Chargement…'));
   if(dbErr)return React.createElement('div',{className:'fullscreen',style:{gap:10,padding:28,textAlign:'center'}},
